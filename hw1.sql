@@ -242,7 +242,16 @@ order by month
 -- Последний месяц август, там всего 41 отклик и 3 приглашения. Этот месяц неполный, поэтому данных меньше.
 -- Также не все отклики могли успеть обработать работадатели, поэтому август лучше исключить из вывода
 
-
+-- Запрос, подтверждающий, что месяц август неполный
+select max(created_at) as last_response,
+min(created_at) as first_response
+from responses
+where created_at >= '2026-08-01'
+  and created_at < '2026-09-01'
+  
+-- Вывод: мы видим, что первый отклик был 1 августа, последний 15 августа -> у нас нет статистики за весь месяц 
+  
+  
 -- ЗАДАНИЕ Д2
 -- Запрос: таблица по направлениям (вакансии, отклики, приглашения,
 -- откликов на вакансию, конверсия)
@@ -299,7 +308,7 @@ GROUP BY 1;
 -- Исправленный запрос:
 
 with salary_role as (select v.professional_role,
-sum(v.salary_from) as total_salary
+round(avg(v.salary_from),0) as avg_salary
 from vacancies as v
 WHERE v.closed_at is null
 group by v.professional_role)
@@ -308,7 +317,7 @@ group by v.professional_role)
  select 
  main.professional_role,
  main.vacancies,
- sr.total_salary,
+ sr.avg_salary,
  main.responses_per_vacancy
  from (SELECT v.professional_role, -- должность
  count(distinct v.vacancy_id) AS vacancies, -- кол-во вакансий на эту должность
@@ -321,7 +330,7 @@ group by v.professional_role)
  left join salary_role as sr
  on main.professional_role = sr.professional_role
  
- -- Исправил запрос, добавил cte, в которой отдельно считается сумма старотовых зарплат по должности
+ -- Исправил запрос, добавил cte, в которой отдельно считается средняя нижняя граница стартовых зарплат по должности
  -- и после этого добавляю к осноному запросу, в котором считаю кол-во вакансий на эту должность и другие метрики.
 
 -- Какие два правила из лекции защитили бы от этих ошибок при написании запроса:
